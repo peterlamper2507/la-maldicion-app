@@ -15,7 +15,8 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
   const [chatId, setChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
-  const [customerName, setCustomerName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [sessionId, setSessionId] = useState<string>('');
 
@@ -41,7 +42,7 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
         setChatId(newChatId);
         setIsStarted(true);
         setIsOpen(true);
-        if (!customerName) setCustomerName('Visitor');
+        if (!firstName) setFirstName('Visitor');
       }
     });
 
@@ -49,7 +50,7 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
       clearInterval(interval);
       unsubscribeInvites();
     };
-  }, [isStarted, customerName]);
+  }, [isStarted, firstName]);
 
   useEffect(() => {
     if (chatId) {
@@ -68,8 +69,9 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
 
   const handleStartChat = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName.trim()) return;
+    if (!firstName.trim() || !lastName.trim() || !customerEmail.trim()) return;
 
+    const customerName = `${firstName.trim()} ${lastName.trim()}`;
     const id = await createChat(customerName, customerEmail, sessionId);
     setChatId(id);
     setIsStarted(true);
@@ -83,7 +85,8 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
 
     const text = inputText;
     setInputText('');
-    await sendMessage(chatId, text, "customer", sessionId, customerName || 'Visitor');
+    const customerName = `${firstName.trim()} ${lastName.trim()}` || 'Visitor';
+    await sendMessage(chatId, text, "customer", sessionId, customerName);
   };
 
   return (
@@ -114,21 +117,45 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
                   <div className="text-center mb-5">
                     <h4 className="text-sm font-bold text-[#1a1a1a] mb-1">How can we help?</h4>
                   </div>
-                  <form onSubmit={handleStartChat} className="space-y-4">
+                  <form onSubmit={handleStartChat} className="space-y-3">
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1">First Name</label>
+                        <input
+                          type="text"
+                          required
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          placeholder="First"
+                          className="w-full px-2 py-1.5 border border-[#e2e8f0] rounded text-[11px] outline-none bg-[#f8fafc]"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1">Last Name</label>
+                        <input
+                          type="text"
+                          required
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          placeholder="Last"
+                          className="w-full px-2 py-1.5 border border-[#e2e8f0] rounded text-[11px] outline-none bg-[#f8fafc]"
+                        />
+                      </div>
+                    </div>
                     <div>
-                      <label className="text-[10px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1.5">Name</label>
+                      <label className="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1">Email</label>
                       <input
-                        type="text"
+                        type="email"
                         required
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="Name"
-                        className="w-full px-3 py-2 border border-[#e2e8f0] rounded text-xs outline-none bg-[#f8fafc]"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder="Email"
+                        className="w-full px-3 py-2 border border-[#e2e8f0] rounded text-[11px] outline-none bg-[#f8fafc]"
                       />
                     </div>
                     <button
                       type="submit"
-                      className="w-full bg-[#3b82f6] text-white py-2.5 rounded font-bold text-xs hover:opacity-90 active:scale-[0.98] transition-all"
+                      className="w-full bg-[#3b82f6] text-white py-2 rounded font-bold text-xs hover:opacity-90 active:scale-[0.98] transition-all mt-2"
                     >
                       Start Chat
                     </button>
