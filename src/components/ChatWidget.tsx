@@ -102,14 +102,17 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
       const lName = lastName.trim();
       const customerName = lName ? `${fName} ${lName}` : fName;
 
+      console.log("Starting chat for:", customerName);
       const id = await createChat(customerName, customerEmail.trim(), sessionId);
+      console.log("Chat ID received:", id);
       setChatId(id);
       setIsStarted(true);
 
       // Auto welcome from bot
       await sendMessage(id, `Hi ${fName}! Welcome to our live support. How can we help you today?`, "agent", "system", "Support Bot");
     } catch (error) {
-      console.error("Failed to start chat session:", error);
+      console.error("Detailed Chat Initiation Error:", error);
+      alert("Connection failed. Please check if your Firebase project is correctly configured.");
     } finally {
       setIsStarting(false);
     }

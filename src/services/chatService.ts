@@ -49,22 +49,30 @@ export interface Visitor {
 export const createChat = async (customerName: string, customerEmail?: string, sessionId?: string) => {
   const path = 'chats';
   try {
-    const docRef = await addDoc(collection(db, path), {
+    const chatData: any = {
       status: 'waiting',
       customerName,
-      customerEmail: customerEmail || '',
       sessionId: sessionId || null,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    });
+    };
+
+    if (customerEmail && customerEmail.trim()) {
+      chatData.customerEmail = customerEmail.trim();
+    }
+
+    const docRef = await addDoc(collection(db, path), chatData);
+    console.log("Chat created successfully:", docRef.id);
     return docRef.id;
   } catch (error) {
+    console.error("Chat creation failed:", error);
     handleFirestoreError(error, OperationType.CREATE, path);
     throw error;
   }
 };
 
 export const trackVisitor = async (sessionId: string, url: string, pageTitle: string, extraData?: Partial<Visitor>) => {
+  if (!sessionId) return;
   const visitorId = sessionId;
   const path = `visitors/${visitorId}`;
   try {
@@ -75,6 +83,7 @@ export const trackVisitor = async (sessionId: string, url: string, pageTitle: st
       lastSeen: serverTimestamp(),
       ...extraData
     }, { merge: true });
+    // console.log("Visitor tracked:", visitorId);
   } catch (error) {
     console.warn("Visitor tracking failed:", error);
   }

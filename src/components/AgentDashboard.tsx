@@ -147,7 +147,7 @@ export default function AgentDashboard() {
 
   const embedCode = `<iframe 
   src="${window.location.origin}/#widget" 
-  style="position:fixed; bottom:24px; right:24px; width:240px; height:380px; border:none; z-index:999999; border-radius:12px; overflow:hidden;"
+  style="position:fixed; bottom:24px; right:24px; width:240px; height:410px; border:none; z-index:999999; border-radius:12px; overflow:hidden;"
   allow="clipboard-read; clipboard-write;"
 ></iframe>`;
 
