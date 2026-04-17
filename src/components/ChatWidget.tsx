@@ -12,7 +12,7 @@ export default function ChatWidget() {
   const [inputText, setInputText] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
-  
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,11 +33,11 @@ export default function ChatWidget() {
   const handleStartChat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim()) return;
-    
+
     const id = await createChat(customerName, customerEmail);
     setChatId(id);
     setIsStarted(true);
-    
+
     // Send welcome message locally or wait for system?
     await sendMessage(id, "Hi! How can we help you today?", "agent", "system", "Support Bot");
   };
@@ -59,52 +59,41 @@ export default function ChatWidget() {
             initial={{ opacity: 0, y: 20, scale: 0.95, transformOrigin: 'bottom right' }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="mb-4 w-[380px] h-[550px] bg-white rounded-xl shadow-2xl border border-[#eeeeee] flex flex-col overflow-hidden"
+            className="mb-4 w-[238px] h-[375px] bg-white rounded-lg shadow-2xl border border-[#eeeeee] flex flex-col overflow-hidden"
           >
             {/* Header */}
-            <div className="bg-[#3b82f6] p-5 text-white flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
+            <div className="bg-[#3b82f6] p-4 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2">
                 <div className="status-badge bg-[#10b981] w-2 h-2 rounded-full" />
-                <h3 className="font-semibold text-sm">StreamLine Support</h3>
+                <h3 className="font-semibold text-xs">Support</h3>
               </div>
               <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-1 rounded transition-colors">
-                <X size={18} />
+                <X size={14} />
               </button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 bg-[#fafafa] flex flex-col gap-5" ref={scrollRef}>
+            <div className="flex-1 overflow-y-auto p-4 bg-[#fafafa] flex flex-col gap-4" ref={scrollRef}>
               {!isStarted ? (
-                <div className="h-full flex flex-col justify-center px-4">
-                  <div className="text-center mb-10">
-                    <h4 className="text-xl font-bold text-[#1a1a1a] mb-2">How can we help?</h4>
-                    <p className="text-sm text-[#64748b]">Search our help center or start a chat.</p>
+                <div className="h-full flex flex-col justify-center">
+                  <div className="text-center mb-5">
+                    <h4 className="text-sm font-bold text-[#1a1a1a] mb-1">How can we help?</h4>
                   </div>
-                  <form onSubmit={handleStartChat} className="space-y-6">
+                  <form onSubmit={handleStartChat} className="space-y-4">
                     <div>
-                      <label className="section-title-min">Full Name</label>
+                      <label className="text-[10px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1.5">Name</label>
                       <input
                         type="text"
                         required
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="Julianne Moore"
-                        className="input-box-min"
-                      />
-                    </div>
-                    <div>
-                      <label className="section-title-min">Email Address</label>
-                      <input
-                        type="email"
-                        value={customerEmail}
-                        onChange={(e) => setCustomerEmail(e.target.value)}
-                        placeholder="j.moore@example.com"
-                        className="input-box-min"
+                        placeholder="Name"
+                        className="w-full px-3 py-2 border border-[#e2e8f0] rounded text-xs outline-none bg-[#f8fafc]"
                       />
                     </div>
                     <button
                       type="submit"
-                      className="w-full bg-[#3b82f6] text-white py-3.5 rounded-md font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
+                      className="w-full bg-[#3b82f6] text-white py-2.5 rounded font-bold text-xs hover:opacity-90 active:scale-[0.98] transition-all"
                     >
                       Start Chat
                     </button>
@@ -115,12 +104,12 @@ export default function ChatWidget() {
                   {messages.map((msg) => (
                     <motion.div
                       key={msg.id}
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       className={cn(
-                        "message-bubble",
-                        msg.sender === 'customer' ? 'message-outgoing-min' : 'message-incoming-min',
-                        msg.sender === 'system' && "self-center bg-transparent text-[#94a3b8] text-[10px] uppercase tracking-widest font-bold border-none"
+                        "px-3 py-2 rounded-md text-xs leading-snug max-w-[90%]",
+                        msg.sender === 'customer' ? 'self-end bg-[#3b82f6] text-white rounded-br-none' : 'self-start bg-white border border-[#eeeeee] rounded-bl-none',
+                        msg.sender === 'system' && "self-center bg-transparent text-[#94a3b8] text-[9px] uppercase tracking-widest font-bold border-none text-center"
                       )}
                     >
                       {msg.text}
@@ -132,14 +121,14 @@ export default function ChatWidget() {
 
             {/* Input */}
             {isStarted && (
-              <div className="p-6 bg-white border-t border-[#eeeeee]">
+              <div className="p-4 bg-white border-t border-[#eeeeee]">
                 <form onSubmit={handleSendMessage}>
                   <input
                     type="text"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     placeholder="Type a message..."
-                    className="input-box-min"
+                    className="w-full px-3 py-2 border border-[#e2e8f0] rounded text-xs outline-none bg-[#f8fafc]"
                   />
                 </form>
               </div>
