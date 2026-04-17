@@ -113,6 +113,9 @@ export default function AgentDashboard() {
       const cid = await inviteToChat(v.sessionId);
       setActiveTab('chats');
       setSelectedChatId(cid);
+
+      // Auto-send an opening message as the agent
+      await sendMessage(cid, "Hello! I noticed you browsing. Is there anything I can help you with today?", "agent", user?.uid || 'system', user?.displayName || 'Agent');
     } catch (error) {
       console.error("Invite failed", error);
     }
@@ -251,7 +254,7 @@ export default function AgentDashboard() {
           <>
             <div className="p-6 border-b border-[#eeeeee]">
               <h1 className="text-xl font-bold text-[#1a1a1a] mb-2">Live Visitors</h1>
-              <p className="text-xs text-[#94a3b8]">Real-time website traffic</p>
+              <p className="text-xs text-[#94a3b8]">Real-time website traffic ({visitors.length})</p>
             </div>
             <div className="flex-1 overflow-y-auto">
               {visitors.length === 0 ? (
@@ -261,19 +264,29 @@ export default function AgentDashboard() {
                 </div>
               ) : (
                 visitors.map(v => (
-                  <div key={v.id} className="p-4 border-b border-[#f9f9f9] hover:bg-[#fcf8f8] transition-colors group">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xs">
-                        V
+                  <div key={v.id} className="p-4 border-b border-[#f9f9f9] hover:bg-gray-50 transition-colors group">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                        <UserCheck size={16} />
                       </div>
-                      <div className="flex-1 truncate">
-                        <div className="text-xs font-bold text-[#1a1a1a]">Anonymous Visitor</div>
-                        <div className="text-[10px] text-[#94a3b8] truncate">{v.url}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-bold text-[#1a1a1a] flex items-center gap-2">
+                          {v.ip || 'Unknown IP'}
+                          <span className="w-1.5 h-1.5 bg-[#10b981] rounded-full animate-pulse" />
+                        </div>
+                        <div className="text-[10px] text-[#94a3b8] flex items-center gap-1 font-medium">
+                          <Globe size={10} /> {v.location || 'Detecting...'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mb-3">
+                      <div className="text-[10px] text-[#64748b] bg-[#f1f5f9] px-2 py-1 rounded truncate">
+                        Currently on: {v.pageTitle || v.url}
                       </div>
                     </div>
                     <button
                       onClick={() => handleInviteToChat(v)}
-                      className="w-full py-1.5 border border-blue-100 text-blue-600 rounded text-[10px] font-bold uppercase tracking-wider hover:bg-blue-600 hover:text-white transition-all"
+                      className="w-full py-2 bg-white border border-blue-100 text-blue-600 rounded text-[10px] font-bold uppercase tracking-wider hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm"
                     >
                       Invite to Chat
                     </button>

@@ -42,6 +42,8 @@ export interface Visitor {
   sessionId: string;
   lastSeen: Timestamp;
   location?: string;
+  ip?: string;
+  country?: string;
 }
 
 export const createChat = async (customerName: string, customerEmail?: string, sessionId?: string) => {
@@ -62,7 +64,7 @@ export const createChat = async (customerName: string, customerEmail?: string, s
   }
 };
 
-export const trackVisitor = async (sessionId: string, url: string, pageTitle: string) => {
+export const trackVisitor = async (sessionId: string, url: string, pageTitle: string, extraData?: Partial<Visitor>) => {
   const visitorId = sessionId;
   const path = `visitors/${visitorId}`;
   try {
@@ -71,9 +73,9 @@ export const trackVisitor = async (sessionId: string, url: string, pageTitle: st
       pageTitle,
       sessionId,
       lastSeen: serverTimestamp(),
+      ...extraData
     }, { merge: true });
   } catch (error) {
-    // Slient fail for now if permission issues in dev
     console.warn("Visitor tracking failed:", error);
   }
 };

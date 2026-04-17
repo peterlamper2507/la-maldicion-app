@@ -31,8 +31,29 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
     }
     setSessionId(sid);
 
-    // Tracking pulse
-    const track = () => trackVisitor(sid!, window.location.href, document.title);
+    // Tracking pulse with Geo info
+    const track = async () => {
+      let geoInfo = {};
+      if (!sessionStorage.getItem('streamline_geo_tracked')) {
+        try {
+          const resp = await fetch('https://ipapi.co/json/');
+          const data = await resp.json();
+          geoInfo = {
+            ip: data.ip,
+            country: data.country_name,
+            location: `${data.city}, ${data.country_name}`
+          };
+          sessionStorage.setItem('streamline_geo_tracked', JSON.stringify(geoInfo));
+        } catch (e) {
+          console.warn("Geo tracking failed:", e);
+        }
+      } else {
+        geoInfo = JSON.parse(sessionStorage.getItem('streamline_geo_tracked') || '{}');
+      }
+
+      trackVisitor(sid!, window.location.href, document.title, geoInfo);
+    };
+
     track();
     const interval = setInterval(track, 30000); // 30s heartbeat
 
@@ -42,7 +63,6 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
         setChatId(newChatId);
         setIsStarted(true);
         setIsOpen(true);
-        if (!firstName) setFirstName('Visitor');
       }
     });
 
@@ -50,7 +70,7 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
       clearInterval(interval);
       unsubscribeInvites();
     };
-  }, [isStarted, firstName]);
+  }, [isStarted]);
 
   useEffect(() => {
     if (chatId) {
@@ -69,14 +89,23 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
 
   const handleStartChat = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName.trim() || !lastName.trim() || !customerEmail.trim()) return;
+    if (!firstName.trim() || !lastName.trim() || !customerEmail.trim()) {
+      alert("Please fill in all fields.");
+      return;
+    }
 
-    const customerName = `${firstName.trim()} ${lastName.trim()}`;
-    const id = await createChat(customerName, customerEmail, sessionId);
-    setChatId(id);
-    setIsStarted(true);
+    try {
+      const customerName = `${firstName.trim()} ${lastName.trim()}`;
+      const id = await createChat(customerName, customerEmail, sessionId);
+      setChatId(id);
+      setIsStarted(true);
 
-    await sendMessage(id, "Hi! How can we help you today?", "agent", "system", "Support Bot");
+      // Auto welcome from bot
+      await sendMessage(id, `Hi ${firstName}! Welcome to our live support. How can we help you today?`, "agent", "system", "Support Bot");
+    } catch (error) {
+      console.error("Failed to start chat session:", error);
+      alert("Something went wrong. Please try again.");
+    }
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {

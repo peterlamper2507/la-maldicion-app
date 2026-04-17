@@ -155,6 +155,14 @@
         "location": {
           "type": "string",
           "description": "Inferred location from IP or browser"
+        },
+        "ip": {
+          "type": "string",
+          "description": "IP address of the visitor"
+        },
+        "country": {
+          "type": "string",
+          "description": "Country of the visitor"
         }
       },
       "required": [
