@@ -220,16 +220,24 @@ export default function AgentDashboard() {
                       selectedChatId === chat.id && "active"
                     )}
                   >
-                    <div className="w-11 h-11 rounded-full bg-gray-100 shrink-0 flex items-center justify-center text-gray-400 font-bold uppercase">
+                    <div className="w-11 h-11 rounded-full bg-gray-100 shrink-0 flex items-center justify-center text-[#94a3b8] font-bold uppercase relative">
                       {chat.customerName.charAt(0)}
+                      {chat.status === 'waiting' && (
+                        <span className="absolute bottom-0 right-0 w-3 h-3 bg-blue-500 border-2 border-white rounded-full" />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start mb-1">
-                        <span className="font-semibold text-sm text-[#1a1a1a] truncate">{chat.customerName}</span>
-                        <span className="text-xs text-[#94a3b8]">{formatDate(chat.updatedAt)}</span>
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <span className="font-semibold text-sm text-[#1a1a1a] truncate">{chat.customerName}</span>
+                          {chat.status === 'waiting' && (
+                            <span className="bg-blue-100 text-blue-600 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase shrink-0 tracking-tight">New</span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-[#94a3b8] font-medium">{formatDate(chat.updatedAt)}</span>
                       </div>
                       <p className="text-xs text-[#64748b] truncate">
-                        {chat.lastMessage || 'Hey, I wanted to check...'}
+                        {chat.lastMessage || 'Awaiting initial message...'}
                       </p>
                     </div>
                   </div>
