@@ -1,10 +1,8 @@
 {
-  "projectId": "peer-pi-os",
-  "appId": "1:139091322917:web:cd4f835dde8eea1852b7cc",
-  "apiKey": "AIzaSyDnDQm13NbSiv_FaOHq7j1ViLfJCeL7Q4Q",
-  "authDomain": "peer-pi-os.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-c2cb3b96-b794-4858-9ebc-0d58e3f1fc98",
-  "storageBucket": "peer-pi-os.firebasestorage.app",
-  "messagingSenderId": "139091322917",
-  "measurementId": ""
+  "apiKey": "AIzaSyBbrTa8tKh-OtwMnbRraVv6J4AwGb5BAKI",
+  "authDomain": "la-maldicion-app-333dd.firebaseapp.com",
+  "projectId": "la-maldicion-app-333dd",
+  "storageBucket": "la-maldicion-app-333dd.firebasestorage.app",
+  "messagingSenderId": "388642338821",
+  "appId": "1:388642338821:web:2cce0a22c16ff86838446c"
 }
