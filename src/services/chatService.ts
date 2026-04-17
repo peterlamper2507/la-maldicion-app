@@ -1,11 +1,11 @@
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  doc, 
-  serverTimestamp, 
-  query, 
-  orderBy, 
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  doc,
+  serverTimestamp,
+  query,
+  orderBy,
   onSnapshot,
   Timestamp,
   where,
@@ -35,13 +35,23 @@ export interface Message {
   timestamp: Timestamp;
 }
 
-export const createChat = async (customerName: string, customerEmail?: string) => {
+export interface Visitor {
+  id: string;
+  url: string;
+  pageTitle: string;
+  sessionId: string;
+  lastSeen: Timestamp;
+  location?: string;
+}
+
+export const createChat = async (customerName: string, customerEmail?: string, sessionId?: string) => {
   const path = 'chats';
   try {
     const docRef = await addDoc(collection(db, path), {
       status: 'waiting',
       customerName,
       customerEmail: customerEmail || '',
+      sessionId: sessionId || null,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -52,7 +62,71 @@ export const createChat = async (customerName: string, customerEmail?: string) =
   }
 };
 
-export const sendMessage = async (chatId: string, text: string, sender: 'customer' | 'agent', senderId: string, senderName: string) => {
+export const trackVisitor = async (sessionId: string, url: string, pageTitle: string) => {
+  const visitorId = sessionId;
+  const path = `visitors/${visitorId}`;
+  try {
+    await setDoc(doc(db, 'visitors', visitorId), {
+      url,
+      pageTitle,
+      sessionId,
+      lastSeen: serverTimestamp(),
+    }, { merge: true });
+  } catch (error) {
+    // Slient fail for now if permission issues in dev
+    console.warn("Visitor tracking failed:", error);
+  }
+};
+
+export const subscribeToVisitors = (callback: (visitors: Visitor[]) => void) => {
+  const path = 'visitors';
+  const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
+  const q = query(collection(db, path), where('lastSeen', '>=', Timestamp.fromDate(fiveMinAgo)), orderBy('lastSeen', 'desc'));
+
+  return onSnapshot(q, (snapshot) => {
+    const visitors = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Visitor[];
+    callback(visitors);
+  }, (error) => {
+    handleFirestoreError(error, OperationType.LIST, path);
+  });
+};
+
+export const inviteToChat = async (sessionId: string) => {
+  const path = 'chats';
+  try {
+    const docRef = await addDoc(collection(db, path), {
+      status: 'waiting',
+      customerName: 'Visitor',
+      sessionId: sessionId,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      initiatedByAgent: true
+    });
+    return docRef.id;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, path);
+    throw error;
+  }
+};
+
+export const subscribeToInvites = (sessionId: string, callback: (chatId: string) => void) => {
+  const path = 'chats';
+  const q = query(collection(db, path), where('sessionId', '==', sessionId), where('status', '==', 'waiting'));
+
+  return onSnapshot(q, (snapshot) => {
+    const invite = snapshot.docs.find(d => d.data().initiatedByAgent === true);
+    if (invite) {
+      callback(invite.id);
+    }
+  }, (error) => {
+    handleFirestoreError(error, OperationType.LIST, path);
+  });
+};
+
+export const sendMessage = async (chatId: string, text: string, sender: 'customer' | 'agent' | 'system', senderId: string, senderName: string) => {
   const path = `chats/${chatId}/messages`;
   try {
     // Add message
@@ -78,7 +152,7 @@ export const sendMessage = async (chatId: string, text: string, sender: 'custome
 export const subscribeToMessages = (chatId: string, callback: (messages: Message[]) => void) => {
   const path = `chats/${chatId}/messages`;
   const q = query(collection(db, path), orderBy('timestamp', 'asc'));
-  
+
   return onSnapshot(q, (snapshot) => {
     const messages = snapshot.docs.map(doc => ({
       id: doc.id,
@@ -93,7 +167,7 @@ export const subscribeToMessages = (chatId: string, callback: (messages: Message
 export const subscribeToActiveChats = (callback: (chats: Chat[]) => void) => {
   const path = 'chats';
   const q = query(collection(db, path), where('status', 'in', ['open', 'waiting']), orderBy('updatedAt', 'desc'));
-  
+
   return onSnapshot(q, (snapshot) => {
     const chats = snapshot.docs.map(doc => ({
       id: doc.id,

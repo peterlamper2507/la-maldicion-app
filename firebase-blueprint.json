@@ -7,7 +7,11 @@
       "properties": {
         "status": {
           "type": "string",
-          "enum": ["open", "closed", "waiting"],
+          "enum": [
+            "open",
+            "closed",
+            "waiting"
+          ],
           "description": "Current status of the chat session"
         },
         "customerName": {
@@ -38,7 +42,12 @@
           "description": "Last activity in the chat"
         }
       },
-      "required": ["status", "customerName", "createdAt", "updatedAt"]
+      "required": [
+        "status",
+        "customerName",
+        "createdAt",
+        "updatedAt"
+      ]
     },
     "Message": {
       "title": "Message",
@@ -55,7 +64,11 @@
         },
         "sender": {
           "type": "string",
-          "enum": ["customer", "agent", "system"],
+          "enum": [
+            "customer",
+            "agent",
+            "system"
+          ],
           "description": "Who sent the message"
         },
         "senderId": {
@@ -72,7 +85,12 @@
           "description": "When the message was sent"
         }
       },
-      "required": ["chatId", "text", "sender", "timestamp"]
+      "required": [
+        "chatId",
+        "text",
+        "sender",
+        "timestamp"
+      ]
     },
     "Agent": {
       "title": "Agent",
@@ -90,16 +108,60 @@
         },
         "role": {
           "type": "string",
-          "enum": ["admin", "agent"],
+          "enum": [
+            "admin",
+            "agent"
+          ],
           "description": "Agent privilege level"
         },
         "status": {
           "type": "string",
-          "enum": ["online", "offline", "away"],
+          "enum": [
+            "online",
+            "offline",
+            "away"
+          ],
           "description": "Current presence status"
         }
       },
-      "required": ["name", "email", "role"]
+      "required": [
+        "name",
+        "email",
+        "role"
+      ]
+    },
+    "Visitor": {
+      "title": "Visitor",
+      "description": "A live visitor on a tracked website",
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "The page URL the visitor is on"
+        },
+        "pageTitle": {
+          "type": "string",
+          "description": "The title of the page"
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Unique session ID for the visitor"
+        },
+        "lastSeen": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last heartbeat from the visitor"
+        },
+        "location": {
+          "type": "string",
+          "description": "Inferred location from IP or browser"
+        }
+      },
+      "required": [
+        "url",
+        "sessionId",
+        "lastSeen"
+      ]
     }
   },
   "firestore": {
@@ -114,6 +176,10 @@
     "/agents/{agentId}": {
       "schema": "Agent",
       "description": "Agent profiles"
+    },
+    "/visitors/{visitorId}": {
+      "schema": "Visitor",
+      "description": "Active website visitors"
     }
   }
 }

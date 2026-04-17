@@ -1,19 +1,55 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, X, Send, User, ChevronDown } from 'lucide-react';
-import { createChat, sendMessage, subscribeToMessages, Message } from '../services/chatService';
+import { createChat, sendMessage, subscribeToMessages, Message, trackVisitor, subscribeToInvites } from '../services/chatService';
 import { cn, formatDate } from '../lib/utils';
 
-export default function ChatWidget() {
-  const [isOpen, setIsOpen] = useState(false);
+interface ChatWidgetProps {
+  defaultOpen?: boolean;
+  hideLauncher?: boolean;
+}
+
+export default function ChatWidget({ defaultOpen = false, hideLauncher = false }: ChatWidgetProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isStarted, setIsStarted] = useState(false);
   const [chatId, setChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
+  const [sessionId, setSessionId] = useState<string>('');
 
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Session management
+    let sid = localStorage.getItem('streamline_session_id');
+    if (!sid) {
+      sid = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      localStorage.setItem('streamline_session_id', sid);
+    }
+    setSessionId(sid);
+
+    // Tracking pulse
+    const track = () => trackVisitor(sid!, window.location.href, document.title);
+    track();
+    const interval = setInterval(track, 30000); // 30s heartbeat
+
+    // Listen for agent initiated chats
+    const unsubscribeInvites = subscribeToInvites(sid!, (newChatId) => {
+      if (!isStarted) {
+        setChatId(newChatId);
+        setIsStarted(true);
+        setIsOpen(true);
+        if (!customerName) setCustomerName('Visitor');
+      }
+    });
+
+    return () => {
+      clearInterval(interval);
+      unsubscribeInvites();
+    };
+  }, [isStarted, customerName]);
 
   useEffect(() => {
     if (chatId) {
@@ -34,11 +70,10 @@ export default function ChatWidget() {
     e.preventDefault();
     if (!customerName.trim()) return;
 
-    const id = await createChat(customerName, customerEmail);
+    const id = await createChat(customerName, customerEmail, sessionId);
     setChatId(id);
     setIsStarted(true);
 
-    // Send welcome message locally or wait for system?
     await sendMessage(id, "Hi! How can we help you today?", "agent", "system", "Support Bot");
   };
 
@@ -48,11 +83,11 @@ export default function ChatWidget() {
 
     const text = inputText;
     setInputText('');
-    await sendMessage(chatId, text, "customer", "customer-anon", customerName);
+    await sendMessage(chatId, text, "customer", sessionId, customerName || 'Visitor');
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <div className={cn("flex flex-col items-end", !hideLauncher ? "fixed bottom-6 right-6 z-50" : "h-full w-full justify-end")}>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -137,24 +172,26 @@ export default function ChatWidget() {
         )}
       </AnimatePresence>
 
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 bg-[#3b82f6] text-white rounded-full shadow-lg flex items-center justify-center transition-all bg-dark relative"
-      >
-        <AnimatePresence mode="wait">
-          {isOpen ? (
-            <motion.div key="close" initial={{ opacity: 0, rotate: -90 }} animate={{ opacity: 1, rotate: 0 }} exit={{ opacity: 0, rotate: 90 }}>
-              <ChevronDown size={28} />
-            </motion.div>
-          ) : (
-            <motion.div key="open" initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }}>
-              <MessageCircle size={28} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.button>
+      {!hideLauncher && (
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-14 h-14 bg-[#3b82f6] text-white rounded-full shadow-lg flex items-center justify-center transition-all bg-dark relative"
+        >
+          <AnimatePresence mode="wait">
+            {isOpen ? (
+              <motion.div key="close" initial={{ opacity: 0, rotate: -90 }} animate={{ opacity: 1, rotate: 0 }} exit={{ opacity: 0, rotate: 90 }}>
+                <ChevronDown size={28} />
+              </motion.div>
+            ) : (
+              <motion.div key="open" initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }}>
+                <MessageCircle size={28} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.button>
+      )}
     </div>
   );
 }

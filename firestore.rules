@@ -77,6 +77,7 @@ service cloud.firestore {
       return data.status in ['open', 'closed', 'waiting'] &&
              data.customerName is string && data.customerName.size() > 0 && data.customerName.size() < 100 &&
              (!('customerEmail' in data) || isValidEmail(data.customerEmail)) &&
+             (!('sessionId' in data) || data.sessionId is string) &&
              data.createdAt is timestamp &&
              data.updatedAt is timestamp;
     }
@@ -89,9 +90,23 @@ service cloud.firestore {
              data.timestamp is timestamp;
     }
 
+    function isValidVisitor(data) {
+      return data.url is string && data.url.size() < 1000 &&
+             data.pageTitle is string && data.pageTitle.size() < 200 &&
+             data.sessionId is string && data.sessionId.size() < 100 &&
+             data.lastSeen is timestamp;
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
+
+    // Visitors Collection
+    match /visitors/{visitorId} {
+      allow read: if isAgent();
+      allow create, update: if isValidVisitor(request.resource.data);
+      allow delete: if isAgent();
+    }
 
     // Agents Collection
     match /agents/{agentId} {
