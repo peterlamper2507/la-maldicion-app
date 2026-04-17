@@ -4,10 +4,11 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { auth, loginWithGoogle } from './lib/firebase';
+import { auth, loginWithGoogle, signUpWithEmail, signInWithEmail } from './lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import AgentDashboard from './components/AgentDashboard';
 import ChatWidget from './components/ChatWidget';
+import AgentLogin from './components/AgentLogin';
 import { LogIn, Rocket, Shield, Zap, Globe, MessageCircle, Users } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -61,35 +62,7 @@ export default function App() {
 
   // Agent Login View
   if (isAgentView && !user) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-[#f7f9fb] font-sans p-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white p-12 rounded-lg shadow-sm border border-[#eeeeee] w-full max-w-md text-center"
-        >
-          <div className="w-12 h-12 bg-[#1a1a1a] rounded flex items-center justify-center text-white mx-auto mb-8">
-            <Shield size={24} />
-          </div>
-          <h1 className="text-2xl font-bold text-[#1a1a1a] mb-2 tracking-tight">Agent Console</h1>
-          <p className="text-[#64748b] mb-10 text-sm">Sign in to manage active support sessions.</p>
-
-          <button
-            onClick={loginWithGoogle}
-            className="w-full flex items-center justify-center gap-3 bg-white border border-[#e2e8f0] py-4 rounded-md font-semibold text-sm hover:bg-[#f8fafc] transition-all"
-          >
-            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-            Sign in with Google
-          </button>
-
-          <div className="mt-12 pt-8 border-t border-[#f9f9f9]">
-            <button className="text-xs text-[#94a3b8] hover:text-[#3b82f6] font-medium transition-colors" onClick={() => window.location.hash = ''}>
-              Back to Home
-            </button>
-          </div>
-        </motion.div>
-      </div>
-    );
+    return <AgentLogin onBackToHome={() => window.location.hash = ''} />;
   }
 
   // Agent Dashboard

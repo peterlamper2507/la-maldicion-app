@@ -29,7 +29,7 @@ import {
   subscribeToVisitors,
   inviteToChat
 } from '../services/chatService';
-import { auth, logout } from '../lib/firebase';
+import { auth, logout, changeUserPassword } from '../lib/firebase';
 import { cn, formatDate } from '../lib/utils';
 
 export default function AgentDashboard() {
@@ -39,8 +39,14 @@ export default function AgentDashboard() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'chats' | 'visitors' | 'settings'>('chats');
+  const [activeTab, setActiveTab] = useState<'chats' | 'visitors' | 'settings' | 'profile'>('chats');
   const [copied, setCopied] = useState(false);
+
+  // Profile management state
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [profileMessage, setProfileMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const user = auth.currentUser;
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -109,6 +115,25 @@ export default function AgentDashboard() {
       setSelectedChatId(cid);
     } catch (error) {
       console.error("Invite failed", error);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!oldPassword || !newPassword) return;
+
+    setProfileLoading(true);
+    setProfileMessage(null);
+
+    try {
+      await changeUserPassword(oldPassword, newPassword);
+      setProfileMessage({ type: 'success', text: 'Password updated successfully!' });
+      setOldPassword('');
+      setNewPassword('');
+    } catch (error: any) {
+      setProfileMessage({ type: 'error', text: error.message || 'Failed to update password' });
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -271,8 +296,14 @@ export default function AgentDashboard() {
         )}
 
         {/* User Card */}
-        <div className="p-5 bg-[#fafafa] border-t border-[#eeeeee] flex items-center gap-3">
-          <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-[#1a1a1a] font-bold text-xs">
+        <button
+          onClick={() => setActiveTab('profile')}
+          className={cn(
+            "p-5 bg-[#fafafa] border-t border-[#eeeeee] flex items-center gap-3 w-full text-left transition-all",
+            activeTab === 'profile' ? "bg-white ring-1 ring-inset ring-blue-500/10" : "hover:bg-gray-100"
+          )}
+        >
+          <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-[#1a1a1a] font-bold text-xs ring-2 ring-white">
             {user?.displayName?.charAt(0) || 'A'}
           </div>
           <div className="flex-1 truncate">
@@ -281,7 +312,7 @@ export default function AgentDashboard() {
               <span className="w-1.5 h-1.5 bg-[#10b981] rounded-full" /> ONLINE
             </p>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Main Content Area */}
@@ -354,6 +385,84 @@ export default function AgentDashboard() {
               </p>
             </div>
           )
+        ) : activeTab === 'profile' ? (
+          <div className="flex-1 bg-[#f8fafc] overflow-y-auto p-12 md:p-24">
+            <div className="max-w-xl mx-auto">
+              <div className="mb-12">
+                <h1 className="text-4xl font-bold tracking-tight text-[#1a1a1a] mb-4">Account Settings</h1>
+                <p className="text-lg text-[#64748b]">Manage your personal information and security.</p>
+              </div>
+
+              <div className="bg-white rounded-lg border border-[#eeeeee] shadow-sm overflow-hidden mb-8">
+                <div className="p-8 border-b border-[#f9f9f9]">
+                  <div className="section-title-min">Personal Information</div>
+                  <div className="grid gap-6">
+                    <div>
+                      <label className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-1">Display Name</label>
+                      <p className="text-sm font-medium text-[#1a1a1a]">{user?.displayName || 'Not set'}</p>
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-1">Email Address</label>
+                      <p className="text-sm font-medium text-[#1a1a1a]">{user?.email}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-8">
+                  <div className="section-title-min">Security</div>
+                  <form onSubmit={handleChangePassword} className="space-y-6">
+                    <div>
+                      <label className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-2">Current Password</label>
+                      <input
+                        type="password"
+                        required
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        className="input-box-min !bg-[#fafafa]"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-2">New Password</label>
+                      <input
+                        type="password"
+                        required
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="input-box-min !bg-[#fafafa]"
+                        placeholder="••••••••"
+                      />
+                    </div>
+
+                    {profileMessage && (
+                      <div className={cn(
+                        "p-4 rounded-md text-xs font-semibold",
+                        profileMessage.type === 'success' ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"
+                      )}>
+                        {profileMessage.text}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={profileLoading}
+                      className="w-full bg-[#1a1a1a] text-white py-3.5 rounded-md font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+                    >
+                      {profileLoading ? 'Updating...' : 'Update Password'}
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <div className="p-8 bg-red-50 rounded-lg border border-red-100">
+                <h4 className="text-sm font-bold text-red-700 mb-2">Danger Zone</h4>
+                <p className="text-xs text-red-600 mb-4 opacity-80">Once you delete your account, there is no going back. Please be certain.</p>
+                <button className="px-5 py-2.5 bg-red-600 text-white rounded font-bold text-xs hover:bg-red-700 transition-colors">
+                  Delete Account
+                </button>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="flex-1 p-20 flex flex-col items-center justify-center text-center">
             <Terminal size={48} className="text-[#eeeeee] mb-8" />
