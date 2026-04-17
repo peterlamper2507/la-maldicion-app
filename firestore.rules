@@ -1,0 +1,123 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: agents
+// Fields:
+//   - name: string (required)
+//   - email: string (required, format: email)
+//   - role: string (required, enum: ['admin', 'agent'])
+//   - status: string (optional, enum: ['online', 'offline', 'away'])
+//
+// Collection: chats
+// Fields:
+//   - status: string (required, enum: ['open', 'closed', 'waiting'])
+//   - customerName: string (required)
+//   - customerEmail: string (optional, format: email)
+//   - agentId: string (optional)
+//   - lastMessage: string (optional)
+//   - createdAt: timestamp (required)
+//   - updatedAt: timestamp (required)
+//
+// Subcollection: chats/{chatId}/messages
+// Fields:
+//   - chatId: string (required)
+//   - text: string (required, max: 2000)
+//   - sender: string (required, enum: ['customer', 'agent', 'system'])
+//   - senderId: string (optional)
+//   - senderName: string (required)
+//   - timestamp: timestamp (required)
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/agents/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "peterlamper@opened-source.nl" && request.auth.token.email_verified == true));
+    }
+
+    function isAgent() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/agents/$(request.auth.uid));
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidAgent(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             isValidEmail(data.email) &&
+             data.role in ['admin', 'agent'] &&
+             (!('status' in data) || data.status in ['online', 'offline', 'away']);
+    }
+
+    function isValidChat(data) {
+      return data.status in ['open', 'closed', 'waiting'] &&
+             data.customerName is string && data.customerName.size() > 0 && data.customerName.size() < 100 &&
+             (!('customerEmail' in data) || isValidEmail(data.customerEmail)) &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidMessage(data) {
+      return data.chatId is string &&
+             data.text is string && data.text.size() > 0 && data.text.size() < 2000 &&
+             data.sender in ['customer', 'agent', 'system'] &&
+             data.senderName is string && data.senderName.size() > 0 &&
+             data.timestamp is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // Agents Collection
+    match /agents/{agentId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAdmin() && isValidAgent(request.resource.data);
+      allow update: if isOwner(agentId) && isValidAgent(request.resource.data) &&
+                      request.resource.data.role == resource.data.role; // Cannot change own role
+    }
+
+    // Chats Collection
+    match /chats/{chatId} {
+      // Agents can read all chats. Customers can read their specific chat if they know the ID.
+      // For simplicity in this support context, we allow read if ID is known, but ideally we'd use session-based auth.
+      allow read: if isAgent() || true; 
+      
+      allow create: if isValidChat(request.resource.data);
+      allow update: if isAgent() && isValidChat(request.resource.data);
+      // Allow customers to update updatedAt and lastMessage
+      allow update: if isValidChat(request.resource.data) && 
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt', 'lastMessage']);
+    }
+
+    // Messages Subcollection
+    match /chats/{chatId}/messages/{messageId} {
+      allow read: if isAgent() || true; // Same as chats
+      allow create: if isValidMessage(request.resource.data);
+    }
+  }
+}

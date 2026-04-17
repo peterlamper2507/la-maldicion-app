@@ -1,0 +1,71 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  
+  --color-bg-app: #f7f9fb;
+  --color-bg-chat: #ffffff;
+  --color-bg-secondary: #fafafa;
+  --color-bg-dark: #1a1a1a;
+  
+  --color-brand: #3b82f6;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #64748b;
+  --color-text-muted: #94a3b8;
+  
+  --color-border: #eeeeee;
+  --color-border-light: #f9f9f9;
+  
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+@layer base {
+  body {
+    @apply font-sans antialiased bg-[#f7f9fb] text-[#1a1a1a];
+  }
+}
+
+/* Custom Minimalist Components */
+.nav-icon-min {
+  @apply w-7 h-7 rounded-sm bg-white/10 flex items-center justify-center cursor-pointer transition-colors hover:bg-white/20;
+}
+
+.nav-icon-min.active {
+  @apply bg-[#3b82f6] text-white;
+}
+
+.chat-item-min {
+  @apply p-5 border-b border-[#f9f9f9] flex gap-3 cursor-pointer transition-all hover:bg-gray-50;
+}
+
+.chat-item-min.active {
+  @apply bg-[#f0f7ff] border-l-[3px] border-[#3b82f6];
+}
+
+.message-bubble {
+  @apply max-w-[80%] px-4 py-3 rounded-lg text-sm leading-relaxed;
+}
+
+.message-incoming-min {
+  @apply self-start bg-white border border-[#eeeeee] rounded-bl-sm;
+}
+
+.message-outgoing-min {
+  @apply self-end bg-[#3b82f6] text-white rounded-br-sm;
+}
+
+.input-box-min {
+  @apply w-full px-4 py-3 border border-[#e2e8f0] rounded-md text-sm outline-none bg-[#f8fafc] transition-all focus:border-[#3b82f6] focus:bg-white;
+}
+
+.section-title-min {
+  @apply text-[11px] uppercase tracking-wider text-[#94a3b8] font-bold mb-4;
+}
+
+.tag-min {
+  @apply px-2 py-1 bg-[#f1f5f9] rounded text-[11px] font-semibold text-[#475569];
+}
+

@@ -1,0 +1,119 @@
+{
+  "entities": {
+    "Chat": {
+      "title": "Chat",
+      "description": "A support chat session",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["open", "closed", "waiting"],
+          "description": "Current status of the chat session"
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Name provided by the customer"
+        },
+        "customerEmail": {
+          "type": "string",
+          "format": "email",
+          "description": "Email provided by the customer"
+        },
+        "agentId": {
+          "type": "string",
+          "description": "UID of the agent handling the chat"
+        },
+        "lastMessage": {
+          "type": "string",
+          "description": "Snippet of the last message sent"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the chat was started"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last activity in the chat"
+        }
+      },
+      "required": ["status", "customerName", "createdAt", "updatedAt"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A single message in a chat",
+      "type": "object",
+      "properties": {
+        "chatId": {
+          "type": "string",
+          "description": "Reference to the parent chat"
+        },
+        "text": {
+          "type": "string",
+          "description": "Content of the message"
+        },
+        "sender": {
+          "type": "string",
+          "enum": ["customer", "agent", "system"],
+          "description": "Who sent the message"
+        },
+        "senderId": {
+          "type": "string",
+          "description": "UID or anonymous ID of the sender"
+        },
+        "senderName": {
+          "type": "string",
+          "description": "Display name of the sender"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the message was sent"
+        }
+      },
+      "required": ["chatId", "text", "sender", "timestamp"]
+    },
+    "Agent": {
+      "title": "Agent",
+      "description": "Support agent profile",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Agent display name"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Agent email address"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "agent"],
+          "description": "Agent privilege level"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["online", "offline", "away"],
+          "description": "Current presence status"
+        }
+      },
+      "required": ["name", "email", "role"]
+    }
+  },
+  "firestore": {
+    "/chats/{chatId}": {
+      "schema": "Chat",
+      "description": "Collection of chat sessions"
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Messages within a specific chat"
+    },
+    "/agents/{agentId}": {
+      "schema": "Agent",
+      "description": "Agent profiles"
+    }
+  }
+}
