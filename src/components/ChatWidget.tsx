@@ -20,6 +20,8 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
   const [customerEmail, setCustomerEmail] = useState('');
   const [sessionId, setSessionId] = useState<string>('');
 
+  const [isStarting, setIsStarting] = useState(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,9 +29,13 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
     let sid = localStorage.getItem('streamline_session_id');
     if (!sid) {
       sid = Math.random().toString(36).substring(2) + Date.now().toString(36);
-      localStorage.setItem('streamline_session_id', sid);
+      try {
+        localStorage.setItem('streamline_session_id', sid);
+      } catch (e) {
+        console.warn("localStorage blocked:", e);
+      }
     }
-    setSessionId(sid);
+    setSessionId(sid || 'guest-' + Math.random().toString(36).substring(2));
 
     // Tracking pulse with Geo info
     const track = async () => {
@@ -89,22 +95,23 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
 
   const handleStartChat = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName.trim() || !lastName.trim() || !customerEmail.trim()) {
-      alert("Please fill in all fields.");
-      return;
-    }
+    setIsStarting(true);
 
     try {
-      const customerName = `${firstName.trim()} ${lastName.trim()}`;
-      const id = await createChat(customerName, customerEmail, sessionId);
+      const fName = firstName.trim() || 'Visitor';
+      const lName = lastName.trim();
+      const customerName = lName ? `${fName} ${lName}` : fName;
+
+      const id = await createChat(customerName, customerEmail.trim(), sessionId);
       setChatId(id);
       setIsStarted(true);
 
       // Auto welcome from bot
-      await sendMessage(id, `Hi ${firstName}! Welcome to our live support. How can we help you today?`, "agent", "system", "Support Bot");
+      await sendMessage(id, `Hi ${fName}! Welcome to our live support. How can we help you today?`, "agent", "system", "Support Bot");
     } catch (error) {
       console.error("Failed to start chat session:", error);
-      alert("Something went wrong. Please try again.");
+    } finally {
+      setIsStarting(false);
     }
   };
 
@@ -152,10 +159,9 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
                         <label className="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1">First Name</label>
                         <input
                           type="text"
-                          required
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
-                          placeholder="First"
+                          placeholder="First Name (Optional)"
                           className="w-full px-2 py-1.5 border border-[#e2e8f0] rounded text-[11px] outline-none bg-[#f8fafc]"
                         />
                       </div>
@@ -163,10 +169,9 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
                         <label className="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1">Last Name</label>
                         <input
                           type="text"
-                          required
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
-                          placeholder="Last"
+                          placeholder="Last Name (Optional)"
                           className="w-full px-2 py-1.5 border border-[#e2e8f0] rounded text-[11px] outline-none bg-[#f8fafc]"
                         />
                       </div>
@@ -175,18 +180,19 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
                       <label className="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1">Email</label>
                       <input
                         type="email"
-                        required
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
-                        placeholder="Email"
+                        placeholder="Email (Optional)"
                         className="w-full px-3 py-2 border border-[#e2e8f0] rounded text-[11px] outline-none bg-[#f8fafc]"
                       />
                     </div>
                     <button
                       type="submit"
-                      className="w-full bg-[#3b82f6] text-white py-2 rounded font-bold text-xs hover:opacity-90 active:scale-[0.98] transition-all mt-2"
+                      disabled={isStarting}
+                      className="w-full bg-[#3b82f6] text-white py-2.5 rounded font-bold text-xs hover:opacity-90 active:scale-[0.98] transition-all mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                      Start Chat
+                      {isStarting && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+                      {isStarting ? 'Starting...' : 'Start Chat'}
                     </button>
                   </form>
                 </div>
