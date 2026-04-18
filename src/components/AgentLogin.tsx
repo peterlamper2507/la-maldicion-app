@@ -67,7 +67,7 @@ export default function AgentLogin({ onBackToHome }: AgentLoginProps) {
                                     animate={{ opacity: 1, height: 'auto' }}
                                     exit={{ opacity: 0, height: 0 }}
                                 >
-                                    <label className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-2">Display Name</label>
+                                    <label htmlFor="display-name" className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-2">Display Name</label>
                                     <div className="relative">
                                         <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                                         <input
@@ -75,7 +75,7 @@ export default function AgentLogin({ onBackToHome }: AgentLoginProps) {
                                             required
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
-                                            placeholder="John Doe"
+                                            id="display-name" placeholder="John Doe"
                                             className="w-full bg-[#f8fafc] border border-[#e2e8f0] pl-10 pr-4 py-3 rounded-md text-sm outline-none focus:border-[#3b82f6] transition-all"
                                         />
                                     </div>
@@ -84,7 +84,7 @@ export default function AgentLogin({ onBackToHome }: AgentLoginProps) {
                         </AnimatePresence>
 
                         <div>
-                            <label className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-2">Email Address</label>
+                            <label htmlFor="email-address" className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-2">Email Address</label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                                 <input
@@ -92,14 +92,14 @@ export default function AgentLogin({ onBackToHome }: AgentLoginProps) {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="name@company.com"
+                                    id="email-address" placeholder="name@company.com"
                                     className="w-full bg-[#f8fafc] border border-[#e2e8f0] pl-10 pr-4 py-3 rounded-md text-sm outline-none focus:border-[#3b82f6] transition-all"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-2">Password</label>
+                            <label htmlFor="password" className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-2">Password</label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                                 <input
@@ -107,7 +107,7 @@ export default function AgentLogin({ onBackToHome }: AgentLoginProps) {
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
+                                    id="password" placeholder="••••••••"
                                     className="w-full bg-[#f8fafc] border border-[#e2e8f0] pl-10 pr-4 py-3 rounded-md text-sm outline-none focus:border-[#3b82f6] transition-all"
                                 />
                             </div>
@@ -117,7 +117,7 @@ export default function AgentLogin({ onBackToHome }: AgentLoginProps) {
 
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading} aria-busy={loading}
                             className="w-full bg-[#1a1a1a] text-white py-3.5 rounded-md font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
                         >
                             {loading ? (
@@ -142,8 +142,8 @@ export default function AgentLogin({ onBackToHome }: AgentLoginProps) {
 
                     <button
                         onClick={handleGoogleLogin}
-                        disabled={loading}
-                        className="w-full flex items-center justify-center gap-3 bg-white border border-[#e2e8f0] py-3.5 rounded-md font-semibold text-sm hover:bg-[#f8fafc] transition-all"
+                        disabled={loading} aria-busy={loading}
+                        aria-label="Continue with Google" className="w-full flex items-center justify-center gap-3 bg-white border border-[#e2e8f0] py-3.5 rounded-md font-semibold text-sm hover:bg-[#f8fafc] transition-all"
                     >
                         <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
                         Continue with Google

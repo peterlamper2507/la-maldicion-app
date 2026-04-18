@@ -144,7 +144,7 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
                 <div className="status-badge bg-[#10b981] w-2 h-2 rounded-full" />
                 <h3 className="font-semibold text-xs">Support</h3>
               </div>
-              <button onClick={() => setIsOpen(false)} className="hover:bg-white/10 p-1 rounded transition-colors">
+              <button onClick={() => setIsOpen(false)} aria-label="Close chat" className="hover:bg-white/10 p-1 rounded transition-colors">
                 <X size={14} />
               </button>
             </div>
@@ -159,39 +159,39 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
                   <form onSubmit={handleStartChat} className="space-y-3">
                     <div className="flex gap-2">
                       <div className="flex-1">
-                        <label className="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1">First Name</label>
+                        <label htmlFor="first-name" className="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1">First Name</label>
                         <input
                           type="text"
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
-                          placeholder="First Name (Optional)"
+                          id="first-name" placeholder="First Name (Optional)"
                           className="w-full px-2 py-1.5 border border-[#e2e8f0] rounded text-[11px] outline-none bg-[#f8fafc]"
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1">Last Name</label>
+                        <label htmlFor="last-name" className="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1">Last Name</label>
                         <input
                           type="text"
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
-                          placeholder="Last Name (Optional)"
+                          id="last-name" placeholder="Last Name (Optional)"
                           className="w-full px-2 py-1.5 border border-[#e2e8f0] rounded text-[11px] outline-none bg-[#f8fafc]"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1">Email</label>
+                      <label htmlFor="email" className="text-[9px] uppercase tracking-wider text-[#94a3b8] font-bold block mb-1">Email</label>
                       <input
                         type="email"
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
-                        placeholder="Email (Optional)"
+                        id="email" placeholder="Email (Optional)"
                         className="w-full px-3 py-2 border border-[#e2e8f0] rounded text-[11px] outline-none bg-[#f8fafc]"
                       />
                     </div>
                     <button
                       type="submit"
-                      disabled={isStarting}
+                      disabled={isStarting} aria-busy={isStarting}
                       className="w-full bg-[#3b82f6] text-white py-2.5 rounded font-bold text-xs hover:opacity-90 active:scale-[0.98] transition-all mt-2 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {isStarting && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
@@ -227,7 +227,7 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
                     type="text"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Type a message..."
+                    aria-label="Type a message" placeholder="Type a message..."
                     className="w-full px-3 py-2 border border-[#e2e8f0] rounded text-xs outline-none bg-[#f8fafc]"
                   />
                 </form>
@@ -241,7 +241,7 @@ export default function ChatWidget({ defaultOpen = false, hideLauncher = false }
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => setIsOpen(!isOpen)} aria-label={isOpen ? "Close support chat" : "Open support chat"} aria-expanded={isOpen}
           className="w-14 h-14 bg-[#3b82f6] text-white rounded-full shadow-lg flex items-center justify-center transition-all bg-dark relative"
         >
           <AnimatePresence mode="wait">
