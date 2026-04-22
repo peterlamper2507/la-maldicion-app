@@ -389,7 +389,7 @@ export default function AgentDashboard() {
                     type="text"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Type a message..."
+                    aria-label="Type a message" placeholder="Type a message..."
                     className="input-box-min"
                   />
                 </form>
@@ -433,25 +433,25 @@ export default function AgentDashboard() {
                   <div className="section-title-min">Security</div>
                   <form onSubmit={handleChangePassword} className="space-y-6">
                     <div>
-                      <label className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-2">Current Password</label>
+                      <label htmlFor="current-password" className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-2">Current Password</label>
                       <input
                         type="password"
                         required
                         value={oldPassword}
                         onChange={(e) => setOldPassword(e.target.value)}
                         className="input-box-min !bg-[#fafafa]"
-                        placeholder="••••••••"
+                        id="current-password" placeholder="••••••••"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-2">New Password</label>
+                      <label htmlFor="new-password" className="text-[10px] uppercase tracking-widest text-[#94a3b8] font-bold block mb-2">New Password</label>
                       <input
                         type="password"
                         required
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         className="input-box-min !bg-[#fafafa]"
-                        placeholder="••••••••"
+                        id="new-password" placeholder="••••••••"
                       />
                     </div>
 
@@ -466,7 +466,7 @@ export default function AgentDashboard() {
 
                     <button
                       type="submit"
-                      disabled={profileLoading}
+                      disabled={profileLoading} aria-busy={profileLoading}
                       className="w-full bg-[#1a1a1a] text-white py-3.5 rounded-md font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
                     >
                       {profileLoading ? 'Updating...' : 'Update Password'}
